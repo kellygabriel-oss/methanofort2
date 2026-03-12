@@ -30,7 +30,7 @@
   @keyframes pinGlow { 0%,100%{opacity:1} 50%{opacity:0.55} }
 
   /* Shared popup */
-  #popup { display:none; position:absolute; z-index:200; width:230px; background:#0d2137f2; border:1px solid #00e5ff55; border-radius:8px; padding:12px; box-shadow:0 0 24px #00e5ff44; color:#e0f7ff; font-size:10px; }
+  #popup { display:none; position:absolute; z-index:3000; width:230px; background:#0d2137f2; border:1px solid #00e5ff55; border-radius:8px; padding:12px; box-shadow:0 0 24px #00e5ff44; color:#e0f7ff; font-size:10px; pointer-events:auto; }
   .popup-name { font-size:12px; font-weight:bold; color:#00e5ff; letter-spacing:1px; margin-bottom:3px; }
   .popup-loc  { font-size:9px; color:#00e5ff88; margin-bottom:6px; }
   .popup-row  { display:flex; justify-content:space-between; margin:3px 0; color:#b0d4e8; }
@@ -39,8 +39,8 @@
   .status-operational { background:#00ff8822; color:#00ff88; border:1px solid #00ff8855; }
   .status-alert { background:#ff6b0022; color:#ff9500; border:1px solid #ff950055; }
   .status-demo { background:#00e5ff22; color:#00e5ff; border:1px solid #00e5ff55; }
-  .popup-btn { width:100%; padding:7px; background:linear-gradient(135deg,#00e5ff22,#0066ff22); border:1px solid #00e5ff55; border-radius:6px; color:#00e5ff; font-family:'Courier New',monospace; font-size:10px; font-weight:bold; letter-spacing:1px; cursor:pointer; margin-top:4px; }
-  .popup-close { position:absolute; top:6px; right:8px; cursor:pointer; color:#00e5ff; font-size:16px; line-height:1; }
+  .popup-btn { width:100%; padding:9px; background:linear-gradient(135deg,#00e5ff33,#0066ff33); border:1px solid #00e5ff88; border-radius:6px; color:#00e5ff; font-family:'Courier New',monospace; font-size:10px; font-weight:bold; letter-spacing:1px; cursor:pointer; margin-top:6px; pointer-events:auto; display:block; -webkit-tap-highlight-color:rgba(0,229,255,0.3); }
+  .popup-close { position:absolute; top:6px; right:8px; cursor:pointer; color:#00e5ff; font-size:16px; line-height:1; pointer-events:auto; }
 
   /* Leaflet popup override */
   .leaflet-popup-content-wrapper { background:#0d2137f2; border:1px solid #00e5ff55; border-radius:8px; box-shadow:0 0 20px #00e5ff33; color:#e0f7ff; font-family:'Courier New',monospace; min-width:215px; }
@@ -48,15 +48,17 @@
   .leaflet-popup-close-button { color:#00e5ff!important; font-size:18px!important; top:6px!important; right:8px!important; }
 
   #statusbar { background:#0d2137; border-top:1px solid #00e5ff22; padding:6px 14px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; font-size:9px; letter-spacing:0.8px; }
-  .stat-item { display:flex; align-items:center; gap:4px; color:#00e5ff99; }
-  .stat-value { color:#00e5ff; font-weight:bold; }
-  .stat-alert { color:#ff9500; font-weight:bold; }
+  .stat-item { display:flex; flex-direction:column; align-items:center; gap:2px; color:#00e5ff99; line-height:1.2; }
+  .stat-icon { font-size:13px; line-height:1; }
+  .stat-label { font-size:7px; letter-spacing:0.5px; color:#00e5ff66; }
+  .stat-value { color:#00e5ff; font-weight:bold; font-size:11px; }
+  .stat-alert { color:#ff9500; font-weight:bold; font-size:11px; }
 
   #legend { position:absolute; top:80px; left:8px; z-index:1000; background:#0d2137cc; border:1px solid #00e5ff33; border-radius:8px; padding:8px 10px; font-size:9px; letter-spacing:0.5px; }
   .legend-row { display:flex; align-items:center; gap:6px; margin:3px 0; color:#b0d4e8; }
   .legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
 
-  #back-btn { position:absolute; bottom:8px; right:8px; z-index:1000; background:#0d2137ee; border:1px solid #00e5ff44; border-radius:8px; padding:8px 14px; color:#00e5ff; font-family:'Courier New',monospace; font-size:10px; letter-spacing:1px; cursor:pointer; }
+  #back-btn { position:absolute; bottom:12px; right:8px; z-index:2000; background:#0d2137ee; border:1px solid #00e5ff44; border-radius:8px; padding:8px 14px; color:#00e5ff; font-family:'Courier New',monospace; font-size:10px; letter-spacing:1px; cursor:pointer; pointer-events:auto; }
   #mode-badge { position:absolute; top:8px; right:8px; z-index:1000; background:#0d2137cc; border:1px solid #00e5ff22; border-radius:6px; padding:4px 8px; font-size:8px; color:#00e5ff66; letter-spacing:1px; }
 </style>
 </head>
@@ -105,10 +107,10 @@
 </div>
 
 <div id="statusbar">
-  <div class="stat-item">📡 STATIONS: <span class="stat-value" id="sb-total">—</span></div>
-  <div class="stat-item">🟢 ACTIVE: <span class="stat-value" id="sb-active">—</span></div>
-  <div class="stat-item">🚨 ALERTS: <span class="stat-alert" id="sb-alert">—</span></div>
-  <div class="stat-item">📶 HEALTH: <span class="stat-value">97%</span></div>
+  <div class="stat-item"><span class="stat-icon">📡</span><span class="stat-value" id="sb-total">—</span><span class="stat-label">STATIONS</span></div>
+  <div class="stat-item"><span class="stat-icon">🟢</span><span class="stat-value" id="sb-active">—</span><span class="stat-label">ACTIVE</span></div>
+  <div class="stat-item"><span class="stat-icon">🚨</span><span class="stat-alert" id="sb-alert">—</span><span class="stat-label">ALERTS</span></div>
+  <div class="stat-item"><span class="stat-icon">📶</span><span class="stat-value">97%</span><span class="stat-label">HEALTH</span></div>
 </div>
 
 <script>
@@ -269,16 +271,14 @@ function closePopup() { document.getElementById('popup').style.display='none'; }
 
 // ── NAVIGATION ────────────────────────────────────────────────
 function openStation(id, hasDashboard) {
-  closePopup();
   if(hasDashboard === true || hasDashboard === 'true') {
-    // Sends station ID to MIT App Inventor → open DashboardScreen
     try { AppInventor.setWebViewString("STATION:" + id); }
     catch(e) { alert("→ Opening dashboard for: " + id.toUpperCase()); }
   } else {
-    // Future station — show coming soon
     try { AppInventor.setWebViewString("FUTURE:" + id); }
     catch(e) { alert("Station " + id.toUpperCase() + " is planned for future deployment. Dashboard coming soon."); }
   }
+  setTimeout(closePopup, 100);
 }
 function goBack() {
   try { AppInventor.setWebViewString("BACK:DASHBOARD"); }
