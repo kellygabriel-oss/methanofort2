@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MethanoFort BioSense</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --teal:       #00c9b1;
+  --dark-teal:  #00877a;
+  --deep:       #071a2e;
+  --deep2:      #0a2540;
+  --panel:      #0d2e44cc;
+  --green:      #39d98a;
+  --amber:      #ffb830;
+  --red:        #ff5f5f;
+  --blue:       #4fc3f7;
+  --text:       #d6f0f5;
+  --muted:      #7bb8c8;
+  --future:     #9b8fc4;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--deep);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ───────────────────────────────────────── */
+#header {
+  background: linear-gradient(135deg, #071a2e, #0a3050);
+  border-bottom: 2px solid #00c9b122;
+  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative;
+  z-index: 200;
+}
+.header-left h1 { font-family:'Space Mono',monospace; font-size:13px; color:var(--teal); letter-spacing:2px; }
+.header-left p  { font-size:9px; color:var(--muted); letter-spacing:1px; margin-top:2px; }
+.live-badge { display:flex; align-items:center; gap:6px; font-size:9px; color:var(--green); font-family:'Space Mono',monospace; letter-spacing:1px; }
+.pulse { width:8px; height:8px; background:var(--green); border-radius:50%; animation:pulse 1.5s ease-in-out infinite; box-shadow:0 0 6px var(--green); }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
+
+/* ── RIVER SCENE ──────────────────────────────────── */
+#river-scene {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  background: linear-gradient(180deg, #0a2e1a 0%, #0d3d22 40%, #0a4a2e 70%, #062a3d 100%);
+  overflow: hidden;
+}
+
+/* Sky/underwater gradient */
+.river-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    #071a0e 0%,
+    #0d3520 30%,
+    #0a4535 55%,
+    #073a4a 75%,
+    #052840 100%
+  );
+}
+
+/* Sunlight rays */
+.sun-rays {
+  position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+  width: 300px; height: 160px;
+  background: conic-gradient(from 260deg at 50% 0%,
+    transparent 0deg, #00c9b108 8deg, transparent 16deg,
+    transparent 30deg, #00c9b108 38deg, transparent 46deg,
+    transparent 60deg, #00c9b108 68deg, transparent 76deg,
+    transparent 90deg, #00c9b108 98deg, transparent 106deg
+  );
+  animation: rays 8s linear infinite;
+}
+@keyframes rays { from{transform:translateX(-50%) rotate(0deg)} to{transform:translateX(-50%) rotate(360deg)} }
+
+/* Water surface shimmer */
+.water-surface {
+  position: absolute; top: 55px; left: 0; right: 0; height: 18px;
+  background: linear-gradient(90deg, transparent, #00c9b133, #4fc3f744, #00c9b133, transparent);
+  animation: shimmer 3s ease-in-out infinite alternate;
+  border-radius: 0 0 50% 50%;
+  filter: blur(2px);
+}
+@keyframes shimmer { 0%{opacity:.5;transform:scaleX(.95)} 100%{opacity:1;transform:scaleX(1.02)} }
+
+/* Water flow lines */
+.flow-line {
+  position: absolute; height: 1px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #4fc3f722, #00c9b133, transparent);
+  animation: flow 4s linear infinite;
+}
+@keyframes flow { from{transform:translateX(-100%)} to{transform:translateX(200%)} }
+
+/* SVG river scene */
+#river-svg { position:absolute; bottom:0; left:0; width:100%; height:190px; z-index:1; }
+
+/* Camera icon */
+.camera-badge {
+  position: absolute; right: 14px; top: 10px;
+  background: #071a2eee; border: 1px solid var(--teal);
+  border-radius: 8px; padding: 5px 10px;
+  font-size: 9px; color: var(--teal);
+  font-family: 'Space Mono', monospace; letter-spacing: 1px;
+  display: flex; align-items: center; gap: 5px;
+  z-index: 500; pointer-events: none;
+}
+.cam-dot { width:6px; height:6px; background:var(--green); border-radius:50%; animation:pulse 1s ease-in-out infinite; }
+
+/* Scene label */
+.scene-label {
+  position: absolute; left: 14px; top: 10px;
+  background: #071a2eee; border: 1px solid #00c9b155;
+  border-radius: 8px; padding: 5px 10px;
+  font-size: 9px; color: var(--muted);
+  font-family: 'Space Mono', monospace; letter-spacing: 1px;
+  z-index: 500; pointer-events: none;
+}
+
+/* Outlet badge */
+.outlet-badge {
+  position: absolute; left: 50%; top: 28px;
+  transform: translateX(-50%);
+  background: #071a2eee; border: 1px solid #00c9b155;
+  border-radius: 6px; padding: 4px 10px;
+  font-size: 9px; color: var(--teal);
+  font-family: 'Space Mono', monospace; letter-spacing: 1px;
+  z-index: 500; pointer-events: none;
+}
+
+/* ── MAIN CONTENT ─────────────────────────────────── */
+#content { padding: 14px 14px 100px; }
+
+/* ── SECTION TITLE ────────────────────────────────── */
+.section-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: 2px;
+  color: var(--teal); margin: 18px 0 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::after {
+  content:''; flex:1; height:1px;
+  background: linear-gradient(90deg, #00c9b133, transparent);
+}
+
+/* ── HEALTH CARDS ─────────────────────────────────── */
+.health-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.health-card {
+  background: var(--panel);
+  border: 1px solid #00c9b122;
+  border-radius: 14px; padding: 14px 12px;
+  position: relative; overflow: hidden;
+  backdrop-filter: blur(8px);
+  animation: fadeUp .6s ease both;
+}
+.health-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background: var(--card-accent, var(--teal));
+  border-radius: 2px 2px 0 0;
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.health-card:nth-child(1){animation-delay:.1s; --card-accent:var(--blue);}
+.health-card:nth-child(2){animation-delay:.2s; --card-accent:var(--green);}
+.health-card:nth-child(3){animation-delay:.3s; --card-accent:var(--amber);}
+.health-card:nth-child(4){animation-delay:.4s; --card-accent:var(--teal);}
+
+.card-icon { font-size: 22px; margin-bottom: 6px; }
+.card-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; font-family:'Space Mono',monospace; margin-bottom: 4px; }
+.card-value { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+.card-status {
+  display: inline-block; padding: 2px 8px; border-radius: 20px;
+  font-size: 8px; font-weight: 700; letter-spacing: 1px;
+  font-family: 'Space Mono', monospace;
+}
+.status-good  { background:#39d98a22; color:var(--green); border:1px solid #39d98a44; }
+.status-watch { background:#ffb83022; color:var(--amber); border:1px solid #ffb83044; }
+
+/* Health bar */
+.health-bar-wrap { margin-top: 8px; }
+.health-bar-bg { background:#ffffff11; border-radius:4px; height:5px; overflow:hidden; }
+.health-bar-fill {
+  height: 100%; border-radius:4px;
+  background: linear-gradient(90deg, var(--bar-color1, var(--teal)), var(--bar-color2, var(--blue)));
+  animation: barGrow 1.2s ease both;
+  transform-origin: left;
+}
+@keyframes barGrow { from{width:0!important} }
+.health-bar-pct { font-size:8px; color:var(--muted); margin-top:3px; font-family:'Space Mono',monospace; }
+
+/* Fish animation in card */
+.fish-swim {
+  display:flex; gap:4px; margin-top:6px; align-items:center;
+}
+.fish-icon { font-size:13px; animation:fishBob 2s ease-in-out infinite; }
+.fish-icon:nth-child(2){animation-delay:.3s;}
+.fish-icon:nth-child(3){animation-delay:.6s;}
+@keyframes fishBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+
+/* Microbe pulse in card */
+.microbe-wrap { display:flex; gap:5px; margin-top:6px; align-items:center; }
+.microbe-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:var(--teal); opacity:.7;
+  animation:microbePulse 1.8s ease-in-out infinite;
+}
+.microbe-dot:nth-child(2){animation-delay:.3s; background:var(--green);}
+.microbe-dot:nth-child(3){animation-delay:.6s; background:var(--blue);}
+.microbe-dot:nth-child(4){animation-delay:.9s; background:var(--teal);}
+@keyframes microbePulse { 0%,100%{transform:scale(1);opacity:.5} 50%{transform:scale(1.4);opacity:1} }
+
+/* ── ECOSYSTEM GAUGE ──────────────────────────────── */
+.gauge-card {
+  background: var(--panel);
+  border: 1px solid #00c9b133;
+  border-radius: 16px; padding: 18px 16px;
+  margin-top: 10px;
+  text-align: center;
+  animation: fadeUp .6s .5s ease both;
+  position: relative; overflow: hidden;
+}
+.gauge-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background: linear-gradient(90deg, var(--teal), var(--green), var(--blue));
+}
+.gauge-title { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:2px; margin-bottom:14px; }
+
+.gauge-wrap { position:relative; width:170px; height:95px; margin:0 auto 8px; }
+.gauge-svg { width:170px; height:95px; }
+.gauge-score {
+  position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+  font-size:36px; font-weight:800; color:var(--teal);
+  font-family:'Space Mono',monospace; line-height:1;
+  text-shadow: 0 0 20px #00c9b155;
+}
+.gauge-denom { font-size:14px; color:var(--muted); }
+.gauge-label { font-size:10px; color:var(--green); font-weight:700; letter-spacing:1px; margin-top:4px; }
+.gauge-sub { font-size:9px; color:var(--muted); margin-top:2px; }
+
+/* ── ALERT INDICATORS ─────────────────────────────── */
+.alert-section {
+  background: linear-gradient(135deg, #0d1f2e, #0a2030);
+  border: 1px solid #ff5f5f22;
+  border-radius: 16px; padding: 16px 14px; margin-top: 10px;
+  animation: fadeUp .6s .6s ease both;
+  position: relative; overflow: hidden;
+}
+.alert-section::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--red), var(--amber));
+}
+.alert-header {
+  display:flex; align-items:center; gap:8px; margin-bottom:12px;
+}
+.alert-header-icon { font-size:16px; }
+.alert-header-text h3 { font-size:12px; font-weight:800; color:var(--red); }
+.alert-header-text p { font-size:9px; color:var(--muted); margin-top:1px; }
+
+.alert-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+.alert-card {
+  background:#ff5f5f08; border:1px solid #ff5f5f22;
+  border-radius:12px; padding:11px 10px;
+  position:relative;
+}
+.alert-card.amber-alert { background:#ffb83008; border-color:#ffb83022; }
+
+.alert-emoji { font-size:20px; margin-bottom:5px; }
+.alert-name { font-size:10px; font-weight:800; color:var(--text); margin-bottom:2px; }
+.alert-trigger {
+  font-size:8px; font-family:'Space Mono',monospace; letter-spacing:.5px;
+  padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:5px;
+}
+.alert-trigger.red  { background:#ff5f5f22; color:var(--red); }
+.alert-trigger.amber{ background:#ffb83022; color:var(--amber); }
+.alert-desc { font-size:9px; color:var(--muted); line-height:1.4; }
+
+/* Visual indicator for alert */
+.alert-visual {
+  display:flex; gap:3px; margin-top:7px; align-items:flex-end; height:18px;
+}
+.alert-bar { width:5px; border-radius:2px; background:var(--red); opacity:.7; }
+.alert-bar.amber { background:var(--amber); }
+
+/* ── FUTURE VISION ────────────────────────────────── */
+.future-card {
+  background: linear-gradient(135deg, #13103a, #0f1535);
+  border: 1px solid #9b8fc444;
+  border-radius: 16px; padding: 16px 14px; margin-top: 10px;
+  animation: fadeUp .6s .7s ease both;
+  position: relative; overflow: hidden;
+}
+.future-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--future), #4fc3f7);
+}
+.future-badge {
+  display:inline-block; padding:3px 10px; border-radius:20px;
+  background:#9b8fc422; border:1px solid #9b8fc444;
+  font-size:8px; color:var(--future); font-family:'Space Mono',monospace;
+  letter-spacing:1px; margin-bottom:10px;
+}
+.future-title { font-size:13px; font-weight:800; color:#c8b8f0; margin-bottom:6px; }
+.future-desc { font-size:10px; color:var(--muted); line-height:1.6; margin-bottom:12px; }
+
+/* Scanning animation */
+.scan-box {
+  background:#0a0820; border:1px solid #9b8fc444;
+  border-radius:10px; padding:12px; position:relative; overflow:hidden;
+  height:90px; display:flex; align-items:center; justify-content:center;
+}
+.scan-line {
+  position:absolute; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent, #9b8fc4, #4fc3f7, #9b8fc4, transparent);
+  animation:scan 2.5s ease-in-out infinite;
+  box-shadow: 0 0 8px #9b8fc488;
+}
+@keyframes scan { 0%{top:10px;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:78px;opacity:0} }
+
+.scan-targets { display:flex; gap:14px; align-items:center; position:relative; z-index:2; }
+.scan-target { text-align:center; }
+.scan-target-icon { font-size:22px; filter:brightness(.7); }
+.scan-target-label { font-size:7px; color:#9b8fc4; font-family:'Space Mono',monospace; margin-top:3px; letter-spacing:.5px; }
+.scan-corner {
+  position:absolute; width:10px; height:10px;
+  border-color:#9b8fc4; border-style:solid; border-width:0;
+}
+.scan-corner.tl{top:6px;left:6px;border-top-width:1px;border-left-width:1px;}
+.scan-corner.tr{top:6px;right:6px;border-top-width:1px;border-right-width:1px;}
+.scan-corner.bl{bottom:6px;left:6px;border-bottom-width:1px;border-left-width:1px;}
+.scan-corner.br{bottom:6px;right:6px;border-bottom-width:1px;border-right-width:1px;}
+
+.future-features { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }
+.future-feat {
+  background:#9b8fc411; border:1px solid #9b8fc422;
+  border-radius:8px; padding:8px 10px;
+  font-size:9px; color:#c8b8f0;
+  display:flex; align-items:center; gap:6px;
+}
+.future-feat-icon { font-size:14px; }
+
+/* ── BACK BUTTON ──────────────────────────────────── */
+#back-btn {
+  position: fixed; bottom: 16px; right: 16px;
+  background: #0d2e44ee; border: 1px solid #00c9b155;
+  border-radius: 12px; padding: 10px 18px;
+  color: var(--teal); font-family:'Space Mono',monospace;
+  font-size: 10px; letter-spacing: 1px; cursor: pointer;
+  z-index: 1000; pointer-events: auto;
+  box-shadow: 0 4px 20px #00000044;
+}
+
+/* ── STATUSBAR ────────────────────────────────────── */
+#statusbar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #071a2eee; border-top: 1px solid #00c9b122;
+  padding: 5px 14px; display: flex;
+  justify-content: space-around; align-items: center;
+  font-size: 9px; font-family:'Space Mono',monospace;
+  backdrop-filter: blur(8px); z-index: 500;
+}
+.stat { display:flex; flex-direction:column; align-items:center; gap:2px; }
+.stat-icon { font-size:11px; }
+.stat-val { color:var(--teal); font-weight:700; font-size:11px; }
+.stat-lbl { color:#00c9b166; font-size:7px; letter-spacing:.5px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div class="header-left">
+    <h1>🧬 BIOSENSE ANALYSIS</h1>
+    <p>BIOLOGICAL ECOSYSTEM MONITOR</p>
+  </div>
+  <div class="live-badge">
+    <div class="pulse"></div>
+    ACTIVE
+  </div>
+</div>
+
+<!-- RIVER SCENE -->
+<div id="river-scene">
+  <div class="river-bg"></div>
+  <div class="sun-rays"></div>
+  <div class="water-surface"></div>
+  <div class="flow-line" style="top:75px;width:60%;left:5%;animation-duration:5s;"></div>
+  <div class="flow-line" style="top:90px;width:40%;left:20%;animation-duration:7s;animation-delay:1s;"></div>
+  <div class="flow-line" style="top:110px;width:55%;left:10%;animation-duration:6s;animation-delay:2s;"></div>
+
+  <svg id="river-svg" viewBox="0 0 400 190" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+    <!-- Water body -->
+    <rect x="0" y="60" width="400" height="130" fill="#0a3d5a88"/>
+
+    <!-- Light caustics -->
+    <ellipse cx="80" cy="80" rx="30" ry="8" fill="#00c9b108" transform="rotate(-15,80,80)"/>
+    <ellipse cx="220" cy="95" rx="25" ry="6" fill="#4fc3f708" transform="rotate(10,220,95)"/>
+    <ellipse cx="320" cy="75" rx="20" ry="5" fill="#00c9b108" transform="rotate(-5,320,75)"/>
+
+    <!-- River bed -->
+    <ellipse cx="200" cy="188" rx="220" ry="30" fill="#062a1a"/>
+    <!-- Stones -->
+    <ellipse cx="60" cy="182" rx="18" ry="8" fill="#0a3520"/>
+    <ellipse cx="150" cy="186" rx="12" ry="6" fill="#093018"/>
+    <ellipse cx="280" cy="183" rx="22" ry="9" fill="#0a3520"/>
+    <ellipse cx="360" cy="180" rx="14" ry="7" fill="#093018"/>
+
+    <!-- Aquatic plants - left -->
+    <g opacity="0.85">
+      <path d="M30,185 Q25,155 20,130" stroke="#1a7a3a" stroke-width="2.5" fill="none"/>
+      <path d="M30,185 Q38,158 42,135" stroke="#1a7a3a" stroke-width="2" fill="none"/>
+      <path d="M20,130 Q10,122 5,118" stroke="#1a7a3a" stroke-width="1.5" fill="none"/>
+      <path d="M20,130 Q18,118 22,112" stroke="#1a7a3a" stroke-width="1.5" fill="none"/>
+      <path d="M42,135 Q50,127 54,122" stroke="#1a7a3a" stroke-width="1.5" fill="none"/>
+      <ellipse cx="5" cy="116" rx="8" ry="4" fill="#22954a" opacity=".8"/>
+      <ellipse cx="22" cy="110" rx="7" ry="3" fill="#22954a" opacity=".8"/>
+      <ellipse cx="55" cy="120" rx="8" ry="4" fill="#1a7a3a" opacity=".8"/>
+    </g>
+    <!-- Plants sway animation -->
+    <g opacity="0.7">
+      <path d="M55,185 Q50,160 48,140" stroke="#155c2e" stroke-width="2" fill="none">
+        <animateTransform attributeName="transform" type="rotate" values="0 55 185;3 55 185;0 55 185;-3 55 185;0 55 185" dur="4s" repeatCount="indefinite"/>
+      </path>
+      <ellipse cx="48" cy="138" rx="6" ry="3" fill="#1a7a3a" opacity=".7">
+        <animateTransform attributeName="transform" type="rotate" values="0 55 185;3 55 185;0 55 185;-3 55 185;0 55 185" dur="4s" repeatCount="indefinite"/>
+      </ellipse>
+    </g>
+
+    <!-- Aquatic plants - right -->
+    <g opacity="0.85">
+      <path d="M370,185 Q365,155 362,128" stroke="#1a7a3a" stroke-width="2.5" fill="none"/>
+      <path d="M370,185 Q378,158 380,135" stroke="#1a7a3a" stroke-width="2" fill="none"/>
+      <path d="M362,128 Q352,120 348,115" stroke="#1a7a3a" stroke-width="1.5" fill="none"/>
+      <path d="M362,128 Q360,115 364,109" stroke="#1a7a3a" stroke-width="1.5" fill="none"/>
+      <ellipse cx="347" cy="113" rx="8" ry="4" fill="#22954a" opacity=".8"/>
+      <ellipse cx="364" cy="107" rx="7" ry="3" fill="#22954a" opacity=".8"/>
+      <ellipse cx="381" cy="133" rx="8" ry="4" fill="#1a7a3a" opacity=".8"/>
+    </g>
+
+    <!-- Center plants -->
+    <g opacity="0.6">
+      <path d="M200,185 Q195,165 192,148" stroke="#1a7a3a" stroke-width="2" fill="none">
+        <animateTransform attributeName="transform" type="rotate" values="0 200 185;-4 200 185;0 200 185;4 200 185;0 200 185" dur="5s" repeatCount="indefinite"/>
+      </path>
+      <ellipse cx="192" cy="146" rx="7" ry="3" fill="#1a7a3a" opacity=".7">
+        <animateTransform attributeName="transform" type="rotate" values="0 200 185;-4 200 185;0 200 185;4 200 185;0 200 185" dur="5s" repeatCount="indefinite"/>
+      </ellipse>
+    </g>
+
+    <!-- JS-driven fish — always swim right, wrap around left edge -->
+    <g id="fA1"><ellipse cx="0" cy="0" rx="12" ry="5" fill="#4fc3f7" opacity=".85"/><polygon points="-12,0 -18,-5 -18,5" fill="#4fc3f7" opacity=".85"/><circle cx="7" cy="-1" r="2" fill="#071a2e"/><circle cx="8" cy="-1.5" r=".7" fill="white"/></g>
+    <g id="fA2"><ellipse cx="0" cy="0" rx="10" ry="4" fill="#29b6d5" opacity=".8"/><polygon points="-10,0 -15,-4 -15,4" fill="#29b6d5" opacity=".8"/><circle cx="6" cy="-1" r="1.5" fill="#071a2e"/></g>
+    <g id="fA3"><ellipse cx="0" cy="0" rx="11" ry="4.5" fill="#4fc3f7" opacity=".75"/><polygon points="-11,0 -16,-4 -16,4" fill="#4fc3f7" opacity=".75"/><circle cx="6" cy="-1" r="1.8" fill="#071a2e"/></g>
+    <g id="fB1"><ellipse cx="0" cy="0" rx="13" ry="5.5" fill="#26c6da" opacity=".8"/><polygon points="-13,0 -19,-5 -19,5" fill="#26c6da" opacity=".8"/><circle cx="8" cy="-1" r="2" fill="#071a2e"/><circle cx="9" cy="-1.5" r=".7" fill="white"/></g>
+    <g id="fB2"><ellipse cx="0" cy="0" rx="10" ry="4" fill="#4dd0e1" opacity=".75"/><polygon points="-10,0 -15,-4 -15,4" fill="#4dd0e1" opacity=".75"/><circle cx="6" cy="-1" r="1.5" fill="#071a2e"/></g>
+    <g id="fC1"><ellipse cx="0" cy="0" rx="8" ry="3.5" fill="#80deea" opacity=".6"/><polygon points="-8,0 -12,-3 -12,3" fill="#80deea" opacity=".6"/></g>
+
+
+
+    <!-- Bubble particles -->
+    <circle cx="80" cy="160" r="2" fill="none" stroke="#4fc3f744" stroke-width="1">
+      <animate attributeName="cy" values="160;80;80" dur="5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.6;0;0" dur="5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="160" cy="170" r="1.5" fill="none" stroke="#4fc3f744" stroke-width="1">
+      <animate attributeName="cy" values="170;100;100" dur="7s" repeatCount="indefinite" begin="1s"/>
+      <animate attributeName="opacity" values="0.5;0;0" dur="7s" repeatCount="indefinite" begin="1s"/>
+    </circle>
+    <circle cx="280" cy="155" r="2.5" fill="none" stroke="#4fc3f733" stroke-width="1">
+      <animate attributeName="cy" values="155;75;75" dur="6s" repeatCount="indefinite" begin="2s"/>
+      <animate attributeName="opacity" values="0.5;0;0" dur="6s" repeatCount="indefinite" begin="2s"/>
+    </circle>
+    <circle cx="340" cy="165" r="1.5" fill="none" stroke="#4fc3f733" stroke-width="1">
+      <animate attributeName="cy" values="165;95;95" dur="4.5s" repeatCount="indefinite" begin="0.5s"/>
+      <animate attributeName="opacity" values="0.5;0;0" dur="4.5s" repeatCount="indefinite" begin="0.5s"/>
+    </circle>
+  </svg>
+
+  <div class="scene-label">🌿 YISHUN CANAL — LIVE VIEW</div>
+  <div class="camera-badge"><div class="cam-dot"></div>CAM CONNECTED</div>
+  <div class="outlet-badge">📹 OUTLET</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="content">
+
+  <!-- SECTION: HEALTH CARDS -->
+  <div class="section-title">BIOLOGICAL HEALTH INDICATORS</div>
+
+  <div class="health-grid">
+
+    <!-- Fish Behaviour -->
+    <div class="health-card">
+      <div class="card-icon">🐠</div>
+      <div class="card-label">FISH BEHAVIOUR</div>
+      <div class="card-value">Normal</div>
+      <div class="card-status status-good">✓ SCHOOLING</div>
+      <div class="fish-swim">
+        <div class="fish-icon">🐟</div>
+        <div class="fish-icon">🐟</div>
+        <div class="fish-icon">🐟</div>
+      </div>
+    </div>
+
+    <!-- Aquatic Plants -->
+    <div class="health-card">
+      <div class="card-icon">🌿</div>
+      <div class="card-label">AQUATIC PLANTS</div>
+      <div class="card-value">94%</div>
+      <div class="card-status status-good">✓ HEALTHY</div>
+      <div class="health-bar-wrap">
+        <div class="health-bar-bg">
+          <div class="health-bar-fill" style="width:94%;--bar-color1:#39d98a;--bar-color2:#00c9b1;"></div>
+        </div>
+        <div class="health-bar-pct">94% coverage</div>
+      </div>
+    </div>
+
+    <!-- Microbial Activity -->
+    <div class="health-card">
+      <div class="card-icon">🦠</div>
+      <div class="card-label">MICROBIAL ACTIVITY</div>
+      <div class="card-value">Balanced</div>
+      <div class="card-status status-good">✓ STABLE</div>
+      <div class="microbe-wrap">
+        <div class="microbe-dot"></div>
+        <div class="microbe-dot"></div>
+        <div class="microbe-dot"></div>
+        <div class="microbe-dot"></div>
+      </div>
+    </div>
+
+    <!-- Camera -->
+    <div class="health-card">
+      <div class="card-icon">📷</div>
+      <div class="card-label">OUTLET CAMERA</div>
+      <div class="card-value">Live</div>
+      <div class="card-status status-good">✓ CONNECTED</div>
+      <div class="health-bar-wrap">
+        <div class="health-bar-bg">
+          <div class="health-bar-fill" style="width:100%;--bar-color1:#4fc3f7;--bar-color2:#00c9b1;"></div>
+        </div>
+        <div class="health-bar-pct">Signal: Strong</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ECOSYSTEM GAUGE -->
+  <div class="gauge-card">
+    <div class="gauge-title">🏆 OVERALL ECOSYSTEM HEALTH SCORE</div>
+    <div class="gauge-wrap">
+      <svg class="gauge-svg" viewBox="0 0 170 95">
+        <!-- Background arc -->
+        <path d="M 15 90 A 70 70 0 0 1 155 90" fill="none" stroke="#ffffff11" stroke-width="10" stroke-linecap="round"/>
+        <!-- Score arc — 91/100 = ~164 degrees of 180 -->
+        <path d="M 15 90 A 70 70 0 0 1 155 90" fill="none"
+          stroke="url(#gaugeGrad)" stroke-width="10" stroke-linecap="round"
+          stroke-dasharray="219.9" stroke-dashoffset="19.8"
+          style="animation:gaugeFill 1.5s ease both;">
+        </path>
+        <defs>
+          <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#39d98a"/>
+            <stop offset="50%" stop-color="#00c9b1"/>
+            <stop offset="100%" stop-color="#4fc3f7"/>
+          </linearGradient>
+        </defs>
+        <!-- Tick marks -->
+        <text x="12" y="92" font-size="7" fill="#ffffff44" font-family="monospace">0</text>
+        <text x="148" y="92" font-size="7" fill="#ffffff44" font-family="monospace">100</text>
+      </svg>
+      <div class="gauge-score">91<span class="gauge-denom">/100</span></div>
+    </div>
+    <div class="gauge-label">THRIVING ECOSYSTEM</div>
+    <div class="gauge-sub">Composite score: fish + plants + microbial balance</div>
+  </div>
+
+  <style>
+    @keyframes gaugeFill {
+      from { stroke-dashoffset: 219.9; }
+      to   { stroke-dashoffset: 19.8;  }
+    }
+  </style>
+
+  <!-- WHAT TO LOOK OUT FOR -->
+  <div class="section-title" style="margin-top:20px;">⚠️ BIOSENSE ALERT INDICATORS</div>
+
+  <div class="alert-section">
+    <div class="alert-header">
+      <div class="alert-header-icon">🔍</div>
+      <div class="alert-header-text">
+        <h3>WHAT TO LOOK OUT FOR</h3>
+        <p>Warning signs that indicate declining water quality</p>
+      </div>
+    </div>
+
+    <div class="alert-grid">
+
+      <!-- Surface Gasping -->
+      <div class="alert-card">
+        <div class="alert-emoji">🐟💨</div>
+        <div class="alert-name">Surface Gasping</div>
+        <div class="alert-trigger red">⚡ LOW OXYGEN</div>
+        <div class="alert-desc">Fish clustering at the surface, mouths opening rapidly. Indicates dangerously low dissolved oxygen — often caused by organic pollution.</div>
+        <div class="alert-visual">
+          <div class="alert-bar" style="height:16px;opacity:.9;"></div>
+          <div class="alert-bar" style="height:12px;"></div>
+          <div class="alert-bar" style="height:18px;opacity:.9;"></div>
+          <div class="alert-bar" style="height:10px;"></div>
+          <div class="alert-bar" style="height:16px;opacity:.9;"></div>
+        </div>
+      </div>
+
+      <!-- Erratic Swimming -->
+      <div class="alert-card">
+        <div class="alert-emoji">🐠🌀</div>
+        <div class="alert-name">Erratic Swimming</div>
+        <div class="alert-trigger red">⚡ CHEMICAL SHOCK</div>
+        <div class="alert-desc">Frantic, spinning, or uncoordinated movement. Indicates sudden chemical exposure — pH crash, heavy metal spike, or toxic runoff event.</div>
+        <div class="alert-visual">
+          <div class="alert-bar" style="height:18px;opacity:.9;"></div>
+          <div class="alert-bar" style="height:8px;"></div>
+          <div class="alert-bar" style="height:16px;opacity:.9;"></div>
+          <div class="alert-bar" style="height:6px;"></div>
+          <div class="alert-bar" style="height:14px;opacity:.9;"></div>
+        </div>
+      </div>
+
+      <!-- Yellowing Leaves -->
+      <div class="alert-card amber-alert">
+        <div class="alert-emoji">🌿🟡</div>
+        <div class="alert-name">Yellowing Plants</div>
+        <div class="alert-trigger amber">⚠️ NUTRIENT STRESS</div>
+        <div class="alert-desc">Leaves turning yellow or pale. Indicates nitrogen toxicity or pH imbalance affecting plant root absorption — early HAB warning sign.</div>
+        <div class="alert-visual">
+          <div class="alert-bar amber" style="height:14px;opacity:.8;"></div>
+          <div class="alert-bar amber" style="height:10px;"></div>
+          <div class="alert-bar amber" style="height:16px;opacity:.8;"></div>
+          <div class="alert-bar amber" style="height:8px;"></div>
+          <div class="alert-bar amber" style="height:12px;opacity:.8;"></div>
+        </div>
+      </div>
+
+      <!-- Algae Bloom -->
+      <div class="alert-card amber-alert">
+        <div class="alert-emoji">🟢🚨</div>
+        <div class="alert-name">Algae Overgrowth</div>
+        <div class="alert-trigger amber">⚠️ HAB WARNING</div>
+        <div class="alert-desc">Thick green or blue-green surface layer forming. Indicates excess nitrogen and phosphorus — direct precursor to a Harmful Algal Bloom event.</div>
+        <div class="alert-visual">
+          <div class="alert-bar amber" style="height:16px;opacity:.8;"></div>
+          <div class="alert-bar amber" style="height:16px;opacity:.8;"></div>
+          <div class="alert-bar amber" style="height:16px;opacity:.8;"></div>
+          <div class="alert-bar amber" style="height:16px;opacity:.8;"></div>
+          <div class="alert-bar amber" style="height:16px;opacity:.8;"></div>
+        </div>
+      </div>
+
+      <!-- Isolation -->
+      <div class="alert-card">
+        <div class="alert-emoji">🐟😔</div>
+        <div class="alert-name">Fish Isolating</div>
+        <div class="alert-trigger red">⚡ DISEASE / STRESS</div>
+        <div class="alert-desc">Fish separating from the school, hiding near the bottom or edges. Indicates disease outbreak, parasite infection, or sustained water quality stress.</div>
+        <div class="alert-visual">
+          <div class="alert-bar" style="height:6px;opacity:.9;"></div>
+          <div class="alert-bar" style="height:16px;"></div>
+          <div class="alert-bar" style="height:4px;opacity:.9;"></div>
+          <div class="alert-bar" style="height:18px;"></div>
+          <div class="alert-bar" style="height:6px;opacity:.9;"></div>
+        </div>
+      </div>
+
+      <!-- Brown Roots -->
+      <div class="alert-card amber-alert">
+        <div class="alert-emoji">🌱🟫</div>
+        <div class="alert-name">Brown/Rotting Roots</div>
+        <div class="alert-trigger amber">⚠️ pH IMBALANCE</div>
+        <div class="alert-desc">Plant roots darkening and decaying instead of showing healthy white growth. Indicates bacterial infection or sustained pH outside the safe 6.5–8.5 range.</div>
+        <div class="alert-visual">
+          <div class="alert-bar amber" style="height:10px;opacity:.8;"></div>
+          <div class="alert-bar amber" style="height:16px;"></div>
+          <div class="alert-bar amber" style="height:8px;opacity:.8;"></div>
+          <div class="alert-bar amber" style="height:14px;"></div>
+          <div class="alert-bar amber" style="height:12px;opacity:.8;"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Legend -->
+    <div style="display:flex;gap:14px;margin-top:12px;padding-top:10px;border-top:1px solid #ffffff11;">
+      <div style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--red);font-family:'Space Mono',monospace;">
+        <div style="width:8px;height:8px;background:var(--red);border-radius:2px;opacity:.7;"></div>
+        CRITICAL — immediate action
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--amber);font-family:'Space Mono',monospace;">
+        <div style="width:8px;height:8px;background:var(--amber);border-radius:2px;opacity:.7;"></div>
+        WARNING — monitor closely
+      </div>
+    </div>
+  </div>
+
+  <!-- FUTURE VISION -->
+  <div class="section-title" style="margin-top:20px;">🔬 FUTURE CAPABILITY</div>
+
+  <div class="future-card">
+    <div class="future-badge">🚀 PLANNED DEVELOPMENT</div>
+    <div class="future-title">AI-Powered BioSense Vision</div>
+    <div class="future-desc">
+      The outlet camera will be trained with computer vision AI to automatically detect the alert indicators above — identifying surface gasping, erratic movement, plant yellowing, and algae overgrowth in real time, 24 hours a day, without any human operator needed.
+    </div>
+
+    <!-- Scanning animation -->
+    <div class="scan-box">
+      <div class="scan-line"></div>
+      <div class="scan-corner tl"></div>
+      <div class="scan-corner tr"></div>
+      <div class="scan-corner bl"></div>
+      <div class="scan-corner br"></div>
+      <div class="scan-targets">
+        <div class="scan-target"><div class="scan-target-icon">🐠</div><div class="scan-target-label">BEHAVIOUR</div></div>
+        <div class="scan-target"><div class="scan-target-icon">🌿</div><div class="scan-target-label">PLANT HEALTH</div></div>
+        <div class="scan-target"><div class="scan-target-icon">🟢</div><div class="scan-target-label">ALGAE LEVEL</div></div>
+        <div class="scan-target"><div class="scan-target-icon">🦠</div><div class="scan-target-label">MICROBIAL</div></div>
+      </div>
+    </div>
+
+    <div class="future-features">
+      <div class="future-feat"><div class="future-feat-icon">🤖</div>Computer vision detection</div>
+      <div class="future-feat"><div class="future-feat-icon">⏰</div>24/7 automated monitoring</div>
+      <div class="future-feat"><div class="future-feat-icon">📲</div>Instant SMS alerts</div>
+      <div class="future-feat"><div class="future-feat-icon">📈</div>Behavioural trend learning</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BACK BUTTON -->
+<button id="back-btn" onclick="goBack()">🏠 DASHBOARD</button>
+
+<!-- STATUSBAR -->
+<div id="statusbar">
+  <div class="stat"><span class="stat-icon">🧬</span><span class="stat-val">91</span><span class="stat-lbl">ECO SCORE</span></div>
+  <div class="stat"><span class="stat-icon">🐠</span><span class="stat-val">OK</span><span class="stat-lbl">FISH</span></div>
+  <div class="stat"><span class="stat-icon">🌿</span><span class="stat-val">94%</span><span class="stat-lbl">PLANTS</span></div>
+  <div class="stat"><span class="stat-icon">📷</span><span class="stat-val">LIVE</span><span class="stat-lbl">CAMERA</span></div>
+</div>
+
+<script>
+function goBack() {
+  try { AppInventor.setWebViewString("BACK:DASHBOARD"); } catch(e) {}
+  try { window.parent.postMessage("BACK:DASHBOARD","*"); } catch(e) {}
+}
+
+// Fish that always swim right, wrap around from left edge
+const fish = [
+  { id:'fA1', x:  20, y:100, speed:0.55, bob:0,    bobSpeed:0.04, bobAmp:2.5 },
+  { id:'fA2', x:  50, y:109, speed:0.55, bob:1.2,  bobSpeed:0.04, bobAmp:2   },
+  { id:'fA3', x:  38, y: 94, speed:0.55, bob:0.6,  bobSpeed:0.04, bobAmp:2.5 },
+  { id:'fB1', x: 200, y:122, speed:0.38, bob:0,    bobSpeed:0.03, bobAmp:3   },
+  { id:'fB2', x: 225, y:133, speed:0.38, bob:0.9,  bobSpeed:0.03, bobAmp:2.5 },
+  { id:'fC1', x: 310, y:141, speed:0.22, bob:0,    bobSpeed:0.025,bobAmp:2   },
+];
+
+fish.forEach(f => {
+  f.el = document.getElementById(f.id);
+  f.phase = f.bob;
+});
+
+function swimFish() {
+  fish.forEach(f => {
+    f.x += f.speed;
+    if (f.x > 420) f.x = -25;       // wrap: exit right → reappear left
+    f.phase += f.bobSpeed;
+    const by = Math.sin(f.phase) * f.bobAmp;
+    f.el.setAttribute('transform', `translate(${f.x},${f.y + by})`);
+  });
+  requestAnimationFrame(swimFish);
+}
+swimFish();
+</script>
+</body>
+</html>
